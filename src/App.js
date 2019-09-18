@@ -11,6 +11,16 @@ function omit(obj, keyToOmit) {
     );
 }
 
+const newRandomCard = () => {
+    const id = Math.random().toString(36).substring(2, 4)
+        + Math.random().toString(36).substring(2, 4);
+    return {
+        id,
+        title: `Random Card ${id}`,
+        content: 'lorem ipsum',
+    }
+}
+
 
 export default class App extends React.Component {
 
@@ -56,22 +66,44 @@ export default class App extends React.Component {
 
  
 
-    handleDelete(id) {
-        console.log('Delete this Card with id', { id })
+    handleDelete = (cardId) => {
+        const { lists, allCards } = this.state;
+        
+        const newLists = lists.map(list => ({
+            ...list,
+            cardIds: list.cardIds.filter(id => id !== cardId)
+        }));
+
+        const newCards = omit(allCards, cardId)
+
+        this.setState({
+            lists: newLists,
+            allCards: newCards,
+        })
     }
 
-    handleAdd(id) {
-        const newRandomCard = () => {
-            const id = Math.random().toString(36).substring(2, 4)
-                + Math.random().toString(36).substring(2, 4);
-            return {
-                id,
-                title: `Random Card ${id}`,
-                content: 'lorem ipsum',
-            }
-        }
+    handleAdd = (listId) => {
+        console.log(listId)
 
-        console.log({newRandomCard})
+        const newCard = newRandomCard()
+        
+        const newLists = this.state.lists.map(list => {
+            if(list.id === listId){
+                return {
+                    ...list,
+                    cardIds: [...list.cardIds, newCard.id]
+                };
+            }
+            return list;
+        })
+
+        this.setState({
+            lists: newLists,
+            cardIds: {
+                ...this.state.allCards,
+                [newCard.id]: newCard,
+            }
+        })
     }
 
     render() {
@@ -81,7 +113,7 @@ export default class App extends React.Component {
                     <h1>Trelloyes!</h1>
                 </header>
                 <div className='App-list'>
-                    {this.state.lists.map(list =>
+                    {this.state.lists.map(list => (
                         <List
                             key={list.id}
                             id={list.id}
@@ -92,6 +124,7 @@ export default class App extends React.Component {
                             onDelete={this.handleDelete}
                             onAdd={this.handleAdd}
                         />
+                    )
                     )}
                 </div>
             </main>
